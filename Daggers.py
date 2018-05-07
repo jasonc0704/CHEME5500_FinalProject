@@ -19,7 +19,7 @@ YELLOW = (255, 255, 0)
 pg.init()
 pg.mixer.init()
 screen = pg.display.set_mode((WIDTH, HEIGHT))
-pg.display.set_caption("My Game")
+pg.display.set_caption("Spaceship")
 clock = pg.time.Clock()
 
 
@@ -28,7 +28,7 @@ def DrawText(surf, text, size, x, y):
 	font = pg.font.Font(font_type, size)
 	text_surface = font.render(text, True, WHITE)
 	text_rect = text_surface.get_rect()
-	text_rect = (x, y)
+	text_rect.midtop = (x, y)
 	surf.blit(text_surface, text_rect)
 
 
@@ -51,6 +51,14 @@ class Player(pg.sprite.Sprite):
 		self.position = (self.rect.x, self.rect.y)
 		self.speedx = 0
 		self.speedy = 0
+
+		# Rotate the player
+		mousePosition = pg.mouse.get_pos()
+		sinnn = mousePosition[1] - self.rect.centery
+		cosss = mousePosition[0] - self.rect.centerx
+		angle = math.atan2(sinnn, cosss)
+		self.rotate = pg.transform.rotate(self.image, -math.degrees(angle))
+		self.rotate_rect = self.rotate.get_rect(center=self.rect.center)
 
 
 	def update(self):
@@ -161,6 +169,31 @@ class Mob(pg.sprite.Sprite):
 			self.speedx = 5*math.cos(ang_ram)
 			self.speedy = 5*math.sin(ang_ram)
 
+
+score = 0
+# make game over screen
+def show_gameover_screen():
+	screen.blit(background, background_rect)
+	DrawText(screen, "Spaceship", 64, WIDTH/2, HEIGHT/5)
+	DrawText(screen, "Your score is: %d" % score, 28, WIDTH/2, HEIGHT*2/5)
+	DrawText(screen, "Arrow keys to move, mouse to rotate and fire", 24, WIDTH/2, HEIGHT*3/5)
+	DrawText(screen, "Press any key to begin", 20, WIDTH/2, HEIGHT*4/5)
+	pg.display.update()
+
+	# stay at game over screen
+	waiting = True
+	while waiting:
+		clock.tick(FPS)
+		for event in pg.event.get():
+			if event.type == pg.QUIT:
+				pg.quit()
+
+			# quit game over screen if press any key
+			if event.type == pg.KEYUP:
+				waiting = False
+
+
+
 # load bacground image
 background = pg.image.load("space.png")
 background_rect = background.get_rect()
@@ -178,9 +211,24 @@ for i in range(10):
 # add score
 score = 0
 # This is game loop
-gameover = False
+game_over = True
 running = True
 while running:
+
+	# Display a game over screen before each game
+	if game_over:
+		show_gameover_screen()
+		game_over = False
+		all_sprites = pg.sprite.Group()
+		mobs = pg.sprite.Group()
+		bullets = pg.sprite.Group()
+		p = Player()
+		for i in range(10):
+			m = Mob()
+			all_sprites.add(m)
+			mobs.add(m)
+		score = 0
+
 	# keep loop running at the right speed
 	clock.tick(FPS)
 
@@ -218,7 +266,23 @@ while running:
 	#Gameover after player being hit by a mob
 	hits = pg.sprite.spritecollide(p, mobs, False)
 	if hits:
-		running = False
+		game_over = True
+
+
+	# Display a game over screen before each game
+	if game_over:
+		show_gameover_screen()
+		game_over = False
+		all_sprites = pg.sprite.Group()
+		mobs = pg.sprite.Group()
+		bullets = pg.sprite.Group()
+		p = Player()
+		for i in range(10):
+			m = Mob()
+			all_sprites.add(m)
+			mobs.add(m)
+		score = 0
+
 
 	# Draw / render everything
 	screen.fill(BLACK)
