@@ -11,7 +11,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
+BLUE = (0, 200, 200)
 YELLOW = (255, 255, 0)
 
 
@@ -44,10 +44,10 @@ class Player(pg.sprite.Sprite):
 		pg.sprite.Sprite.__init__(self)
 		super(Player, self).__init__()
 		self.image = pg.Surface((25, 15), pg.SRCALPHA)
-		pg.draw.polygon(self.image, YELLOW, ((0, 0), (25, 7.5), (0, 15)))
+		pg.draw.polygon(self.image, BLUE, ((0, 0), (25, 7.5), (0, 15)))
 		self.rect = self.image.get_rect()
-		self.rect.x = 400
-		self.rect.y = 250
+		self.rect.x = WIDTH/2
+		self.rect.y = HEIGHT/2
 		self.position = (self.rect.x, self.rect.y)
 		self.speedx = 0
 		self.speedy = 0
@@ -115,8 +115,8 @@ class Bullet(pg.sprite.Sprite):
 		angle = math.atan2(sinnn, cosss)
 
 		# bullets generate at player's position 
-		self.rect.x = p.rect.centerx
-		self.rect.y = p.rect.centery
+		self.rect.centerx = p.rect.centerx
+		self.rect.centery = p.rect.centery
 		
 		# bullet flies toward the mouse 
 		self.speedx = math.cos(angle) * 10
@@ -143,15 +143,16 @@ class Mob(pg.sprite.Sprite):
 		self.image.fill(RED)
 		self.rect = self.image.get_rect()
 
-		self.rect.x = random.randrange(WIDTH)
-		self.rect.y = random.randrange(HEIGHT)
-
-		#if self.rect.x > p.rect.x+d and self.rect.x < p.rect.x-d and self.rect.y > p.rect.y+d and self.rect.y < p.rect.y-d:
-			#pass
+		# Mobs cannot spawn too close to the player. People cannot react.
+		d = 50
+		WIDTH_choice = range(p.rect.x-d)+ range(p.rect.x+d, WIDTH)
+		HEIGHT_choice = range(p.rect.y-d)+range(p.rect.y+d, HEIGHT)
+		self.rect.x = random.choice(WIDTH_choice)
+		self.rect.y = random.choice(HEIGHT_choice)
 
 		ang_ram = math.radians(random.randrange(360))
 		self.speedx = 3 * math.cos(ang_ram)
-		self.speedy = 3 * math.sin(ang_ram)
+		self.speedy = 3 * math.sin(ang_ram) 
 
 
 	def update(self):
